@@ -3,7 +3,11 @@ import * as vscode from 'vscode';
 import fs = require("fs");
 import liquid = require("liquidjs");
 import path = require('path');
+
 import { workingDirectory } from "./workingDirectory";
+import { liquidParser } from './liquidParser';
+
+let jsonFile = "";
 
 export const liquidEngine = async (workspaceFolder: readonly vscode.WorkspaceFolder[]) => {
     const workspacePath = workingDirectory().fileName;
@@ -29,9 +33,17 @@ export const liquidEngine = async (workspaceFolder: readonly vscode.WorkspaceFol
             render: () => { return ''; }
         });
 
-        return await engine.parseAndRender(content).then((html: string) => {
-            html = html.replace('<script src="', '<script src="./assets/');
-            return html;
-        });
+        const setJSONFile = (file: string) => { 
+            jsonFile = file;
+        };
+
+        const parsedContent = await liquidParser({content, jsonFile, setJSONFile});
+
+        if (parsedContent) {
+            return await engine.parseAndRender(parsedContent).then((html: string) => {
+                html = html.replace('<script src="', '<script src="./assets/');
+                return html;
+            });
+        }
     }
 };

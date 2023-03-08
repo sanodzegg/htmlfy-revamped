@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 
 export const initializeStatusbar = () => {
-    const statusBarButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    const activateButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
     
-    statusBarButton.text = "HTMLfy Liquid";
-    statusBarButton.command = "htmlfy.activate";
+    activateButton.text = "HTMLfy Liquid";
+    activateButton.command = "htmlfy.activate";
 
-    statusBarButton.show();
+    activateButton.show();
 };

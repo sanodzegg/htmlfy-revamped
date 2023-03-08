@@ -8,8 +8,6 @@ export const generateHTML = (): vscode.Disposable => {
         if (workspaceFolder) {
             const htmlFilePath = path.join(workspaceFolder[0].uri.fsPath, 'index.html');
             const parsedLiquid = await liquidEngine(workspaceFolder);
-            console.log(parsedLiquid);
-            
         } else {
             vscode.window.showErrorMessage('No workspace folder found');
             return;

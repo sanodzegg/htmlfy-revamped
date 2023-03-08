@@ -24,7 +24,6 @@ const generateHTML = () => {
         if (workspaceFolder) {
             const htmlFilePath = path.join(workspaceFolder[0].uri.fsPath, 'index.html');
             const parsedLiquid = await (0, liquidEngine_1.liquidEngine)(workspaceFolder);
-            console.log(parsedLiquid);
         }
         else {
             vscode.window.showErrorMessage('No workspace folder found');
@@ -52,9 +51,11 @@ module.exports = require("path");
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.liquidEngine = void 0;
 const fs = __webpack_require__(5);
-const liquid = __webpack_require__(8);
+const liquid = __webpack_require__(6);
 const path = __webpack_require__(3);
-const workingDirectory_1 = __webpack_require__(6);
+const workingDirectory_1 = __webpack_require__(9);
+const liquidParser_1 = __webpack_require__(11);
+let jsonFile = "";
 const liquidEngine = async (workspaceFolder) => {
     const workspacePath = (0, workingDirectory_1.workingDirectory)().fileName;
     if (workspacePath !== undefined) {
@@ -79,10 +80,16 @@ const liquidEngine = async (workspaceFolder) => {
             },
             render: () => { return ''; }
         });
-        return await engine.parseAndRender(content).then((html) => {
-            html = html.replace('<script src="', '<script src="./assets/');
-            return html;
-        });
+        const setJSONFile = (file) => {
+            jsonFile = file;
+        };
+        const parsedContent = await (0, liquidParser_1.liquidParser)({ content, jsonFile, setJSONFile });
+        if (parsedContent) {
+            return await engine.parseAndRender(parsedContent).then((html) => {
+                html = html.replace('<script src="', '<script src="./assets/');
+                return html;
+            });
+        }
     }
 };
 exports.liquidEngine = liquidEngine;
@@ -97,44 +104,6 @@ module.exports = require("fs");
 
 /***/ }),
 /* 6 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.workingDirectory = void 0;
-const vscode = __webpack_require__(1);
-const workingDirectory = () => {
-    const textEditor = vscode.window.activeTextEditor;
-    const currentFile = textEditor?.document.fileName;
-    return {
-        liquidDirectory: currentFile?.endsWith(".liquid"),
-        fileName: currentFile
-    };
-};
-exports.workingDirectory = workingDirectory;
-
-
-/***/ }),
-/* 7 */
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.initializeStatusbar = void 0;
-const vscode = __webpack_require__(1);
-const initializeStatusbar = () => {
-    const statusBarButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-    statusBarButton.text = "HTMLfy Liquid";
-    statusBarButton.command = "htmlfy.activate";
-    statusBarButton.show();
-};
-exports.initializeStatusbar = initializeStatusbar;
-
-
-/***/ }),
-/* 8 */
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 "use strict";
@@ -198,7 +167,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "toValueSync": () => (/* binding */ toValueSync),
 /* harmony export */   "version": () => (/* binding */ version)
 /* harmony export */ });
-/* harmony import */ var stream__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(9);
+/* harmony import */ var stream__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(7);
 /* harmony import */ var stream__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(stream__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3);
 /* harmony import */ var path__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(path__WEBPACK_IMPORTED_MODULE_1__);
@@ -1503,7 +1472,7 @@ function requireResolve (file) {
    * when import.meta.url not begin with "file://".
    */
   const require = /* createRequire() */ undefined;
-  return /*require.resolve*/(__webpack_require__(10).resolve(file))
+  return /*require.resolve*/(__webpack_require__(8).resolve(file))
 }
 
 const statAsync = promisify(fs__WEBPACK_IMPORTED_MODULE_2__.stat);
@@ -3822,14 +3791,14 @@ const version = '10.6.1';
 
 
 /***/ }),
-/* 9 */
+/* 7 */
 /***/ ((module) => {
 
 "use strict";
 module.exports = require("stream");
 
 /***/ }),
-/* 10 */
+/* 8 */
 /***/ ((module) => {
 
 function webpackEmptyContext(req) {
@@ -3839,8 +3808,158 @@ function webpackEmptyContext(req) {
 }
 webpackEmptyContext.keys = () => ([]);
 webpackEmptyContext.resolve = webpackEmptyContext;
-webpackEmptyContext.id = 10;
+webpackEmptyContext.id = 8;
 module.exports = webpackEmptyContext;
+
+/***/ }),
+/* 9 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.workingDirectory = void 0;
+const vscode = __webpack_require__(1);
+const workingDirectory = () => {
+    const textEditor = vscode.window.activeTextEditor;
+    const currentFile = textEditor?.document.fileName;
+    return {
+        liquidDirectory: currentFile?.endsWith(".liquid"),
+        fileName: currentFile
+    };
+};
+exports.workingDirectory = workingDirectory;
+
+
+/***/ }),
+/* 10 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.initializeStatusbar = void 0;
+const vscode = __webpack_require__(1);
+const initializeStatusbar = () => {
+    const activateButton = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+    activateButton.text = "HTMLfy Liquid";
+    activateButton.command = "htmlfy.activate";
+    activateButton.show();
+};
+exports.initializeStatusbar = initializeStatusbar;
+
+
+/***/ }),
+/* 11 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.liquidParser = void 0;
+const vscode = __webpack_require__(1);
+const path = __webpack_require__(3);
+const fileDialog_1 = __webpack_require__(12);
+const workingDirectory_1 = __webpack_require__(9);
+const liquidParser = async ({ content, jsonFile, setJSONFile }) => {
+    const sectionMatcher = /{{{0,1}\s*section\.settings\.[^\s}]+\s*}}{0,1}/g;
+    const sectionMatches = content.match(sectionMatcher);
+    if (sectionMatches) {
+        const parsedMatches = sectionMatches.map(tag => tag.replaceAll(' ', '').replaceAll('{', '').replaceAll('}', ''));
+        const filteredMatches = parsedMatches.map(e => e.split(".").pop());
+        const jsonData = await (0, fileDialog_1.getJSONFile)(jsonFile);
+        if (jsonData === undefined) {
+            return;
+        }
+        let jsonToParse = "";
+        if (typeof jsonData === "string") {
+            jsonToParse = jsonData;
+        }
+        else {
+            jsonToParse = jsonData.json;
+            setJSONFile(jsonData.file);
+        }
+        const json = JSON.parse(jsonToParse);
+        const workspacePath = (0, workingDirectory_1.workingDirectory)().fileName;
+        if (workspacePath) {
+            let workFolder = path.basename(workspacePath);
+            workFolder = workFolder.replace(".liquid", "");
+            const sections = Object.values(json.sections);
+            const cor = sections.find(e => e.type === workFolder);
+            console.log(cor);
+            if (cor) {
+                filteredMatches.forEach((key, index) => {
+                    if (key !== undefined) {
+                        content = content.replace(sectionMatches[index], cor.settings[key]);
+                    }
+                });
+            }
+            else {
+                const result = await vscode.window.showWarningMessage("Template file doesn't seem to match with the current working liquid file.", "Select File");
+                if (result === "Select File") {
+                    jsonFile = "";
+                    const jsonData = await (0, fileDialog_1.getJSONFile)(jsonFile);
+                    if (jsonData && typeof jsonData !== "string") {
+                        setJSONFile(jsonData.file);
+                    }
+                }
+                ;
+            }
+        }
+    }
+    return content;
+};
+exports.liquidParser = liquidParser;
+
+
+/***/ }),
+/* 12 */
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+exports.getJSONFile = void 0;
+const vscode = __webpack_require__(1);
+const fs = __webpack_require__(5);
+const getJSONFile = async (jsonFile) => {
+    const workspaceFolders = vscode.workspace.workspaceFolders;
+    if (!workspaceFolders) {
+        vscode.window.showErrorMessage('No workspace folder found.');
+        return;
+    }
+    ;
+    const folderURI = vscode.Uri.joinPath(workspaceFolders[0].uri, 'templates');
+    const files = await vscode.workspace.fs.readDirectory(folderURI);
+    const fileNames = files.filter(file => file[1] === vscode.FileType.File).map(file => file[0]);
+    if (jsonFile === "") {
+        const fileName = await vscode.window.showInputBox({
+            prompt: 'Select a template file:',
+            placeHolder: 'File name',
+            value: '',
+            ignoreFocusOut: true,
+            validateInput: value => {
+                if (!value || !fileNames.includes(value)) {
+                    return 'Invalid file name.';
+                }
+            }
+        });
+        if (fileName) {
+            const filePath = vscode.Uri.joinPath(folderURI, fileName).fsPath;
+            const jsondata = {
+                json: fs.readFileSync(filePath, 'utf-8'),
+                file: fileName
+            };
+            return jsondata;
+        }
+    }
+    else {
+        const filePath = vscode.Uri.joinPath(folderURI, jsonFile).fsPath;
+        return fs.readFileSync(filePath, 'utf-8');
+    }
+};
+exports.getJSONFile = getJSONFile;
+
 
 /***/ })
 /******/ 	]);
@@ -3923,8 +4042,8 @@ const vscode = __webpack_require__(1);
 // disposables
 const generateHtml_1 = __webpack_require__(2);
 // utilities
-const statusBar_1 = __webpack_require__(7);
-const workingDirectory_1 = __webpack_require__(6);
+const statusBar_1 = __webpack_require__(10);
+const workingDirectory_1 = __webpack_require__(9);
 const activate = async (context) => {
     let activated = false;
     (0, statusBar_1.initializeStatusbar)();
