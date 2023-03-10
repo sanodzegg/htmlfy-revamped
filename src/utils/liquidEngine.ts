@@ -37,7 +37,7 @@ export const liquidEngine = async (workspaceFolder: readonly vscode.WorkspaceFol
             jsonFile = file;
         };
 
-        const parsedContent = await liquidParser({content, jsonFile, setJSONFile});
+        const parsedContent = await liquidParser({ content, jsonFile, setJSONFile });
 
         if (parsedContent) {
             return await engine.parseAndRender(parsedContent).then((html: string) => {
