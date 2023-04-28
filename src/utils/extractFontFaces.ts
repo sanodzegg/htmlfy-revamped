@@ -15,21 +15,25 @@ export const extractFonts = (): null | string[] => {
     const fontFaceMatches = content.match(matcherExpression);
 
     if (fontFaceMatches && fontFaceMatches.length > 0) {
+        let fontFaceStr: string | string[] = fontFaceMatches.join(" / ");
         for (let fontFace of fontFaceMatches) {
             const fontFaceLines = fontFace.match(/{{\s*'([^']*)'\s*\|\s*asset_url\s*}}/g);
 
             if (fontFaceLines) {
+                let i = 0;
                 for (let line of fontFaceLines) {
+                    i++;
                     let fontName:FontName = line.match(/{{\s*'([^']+)'\s*\|\s*asset_url\s*}}/);
 
                     if (fontName && fontName[1]) {
-                        fontName = fontName[1];
-                        // replace it
+                       fontName = `/assets/${fontName[1]}`;
+                       fontFaceStr = fontFaceStr.replaceAll(line, fontName);
                     }
                 }
             }
         }
-        return [''];
+        fontFaceStr = fontFaceStr.split(" / ");
+        return fontFaceStr;
     } else {
         return null;
     }
